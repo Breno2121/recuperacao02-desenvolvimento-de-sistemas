@@ -1,21 +1,48 @@
 'use client'
 
-import { Dev } from "@/types/Dev";
-import { useState } from "react";
+import axios from "axios";
+import { FormEvent, useEffect, useState } from "react";
+import './styles.css';
+
+type Dev = {
+  id: string;
+  name: string;
+  tech: string;
+  description: string;
+}
+
 
 export default function Page() {
-  const [dev, setDev] = useState<Dev[]>([]);
+  const [devs, setDevs] = useState<Dev[]>([]);
+  const [name, setName] = useState<any>();
+  const [tech, setTech] = useState<any>();
+  const [description, setDescription] = useState<any>();
+
+  useEffect(() => {
+    loadDevs();
+  })
 
   async function loadDevs() {
-    // FAZ CHAMADA API PARA BUSCAR TODOS OS DE
-    // JOGA AS INFORMAÇÕES DENTRO DO ESTADO setDev(response.data)
+    const response = await axios.get("http://localhost:3333/devs");
+    const postDevs = response.data
+
+    setDevs(postDevs)
   }
 
-  async function handleCreateDev() {
-    // PEGA INFORMAÇÕES DO FORMULÁRIO/CAMPOS
-    // CRIA OBJETO DO TIPO DEV
-    // FAZ CHAMADA API PARA ADICIONAR DEV
-    // FAZ CHAMADA API PARA BUSCAR LISTA DE DEVS ATUALIZADA
+  async function handleCreateDev(event: FormEvent) {
+    event.preventDefault()
+    const Dev = {
+      name: name,
+      tech: tech,
+      description: description
+    };
+
+    await axios.post("http://localhost:3333/devs", Dev);
+    setName("")
+    setTech("")
+    setDescription("")
+
+    await loadDevs();
   }
 
   async function handleDeleteDev(id: string) {
@@ -24,6 +51,30 @@ export default function Page() {
   }
 
   return (
-    <h1>Hello World</h1>
+    <body className="body">
+      <div className="container-principal">
+        <div className="container-cadastro">
+          <div className="container-cabecalho">
+            <h3>Cadastro</h3>
+            <div className="inputs">
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" />
+              <input value={tech} onChange={(e) => setTech(e.target.value)} placeholder="Tecnologias" />
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição" />
+              <button type="submit" onClick={handleCreateDev}>Cadastrar</button>
+            </div>
+          </div>
+        </div>
+        <div className="container-devs">
+          <ul>
+            {devs.map(Dev => (
+              <li key={Dev.id}>
+                <strong>{Dev.name}</strong> - {Dev.tech}
+                <p>{Dev.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </body>
   )
 }
